@@ -13,3 +13,13 @@ export const fmtAmount = (n: number) =>
 
 export const fmtDate = (ms: number) =>
   new Date(ms).toLocaleString("en-IE", { dateStyle: "medium", timeStyle: "short" });
+
+// Money always shows two decimals, e.g. 48,500.00.
+export const fmtMoney = (n: number) =>
+  n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// Short human reference for a trade (LC-0041, LC-0042…), by creation order.
+export const tradeRef = (trades: { id: string; createdAt: number }[], id: string) => {
+  const i = [...trades].sort((a, b) => a.createdAt - b.createdAt).findIndex((t) => t.id === id);
+  return `LC-${String(41 + Math.max(0, i)).padStart(4, "0")}`;
+};

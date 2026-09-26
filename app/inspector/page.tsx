@@ -2,47 +2,37 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Loader2, Stamp, X } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useLoc } from "@/lib/use-loc";
 import { approveShipment, docsOf, isOpen, rejectShipment } from "@/lib/loc";
 import type { Settlement } from "@/lib/types";
 import { DOC_LABELS } from "@/lib/types";
-import { fmtAmount, fmtDate } from "@/lib/explorer";
+import { fmtDate, fmtMoney, tradeRef } from "@/lib/explorer";
+import { inspectorOrder } from "@/lib/order";
+import { PARTY_NAMES } from "@/lib/placeholder-data";
 import { UNIT } from "@/lib/config";
-import { Amount, Empty, Hash, PageHeader, Party, StatusPill, TxLink, fmtDuration, useCountdown } from "@/components/ui";
-import { TradePicker } from "@/components/TradePicker";
+import { Empty, Hash, PageHeader, SectionHead, StatusPill, TxLink, fmtDuration, useCountdown } from "@/components/ui";
 import { VerifyDropZone } from "@/components/VerifyDropZone";
 import { SettlementCard } from "@/components/SettlementCard";
 import { PlaceholderTag } from "@/components/PlaceholderTag";
 import { useApp } from "@/components/Providers";
 
-const RANK: Record<string, number> = { DocumentsSubmitted: 0, Funded: 1, Rejected: 2, Paid: 3, Refunded: 4, Verified: 3 };
-
 export default function InspectorQueue() {
   const s = useLoc();
-  const { toast } = useApp();
-  const [selected, setSelected] = useState<string>();
+  const { toast, focus, setFocus } = useApp();
   const [busy, setBusy] = useState<null | "approve" | "reject">(null);
   const [settlement, setSettlement] = useState<Settlement | null>(null);
 
-  const trades = s ? [...s.trades].sort((a, b) => RANK[a.status] - RANK[b.status] || b.createdAt - a.createdAt) : [];
-  const trade = trades.find((t) => t.id === selected) ?? trades[0];
+  const trades = s ? inspectorOrder(s.trades) : [];
+  const trade = trades.find((t) => t.id === focus) ?? trades[0];
   const left = useCountdown(trade?.deadline ?? 0);
 
   if (!s) return <div className="h-96" />;
 
-  const header = (
-    <PageHeader
-      role="inspector"
-      eyebrow="Inspector · Screen C"
-      title="Verify the shipment"
-      sub="Check the goods and the documents, then approve on-chain. Your approval is what releases the escrow."
-    />
-  );
   if (!trade)
     return (
       <div>
-        {header}
+        <PageHeader eyebrow="Inspector · Verification" title="Review shipment proof" />
         <Empty>Nothing to inspect yet.</Empty>
       </div>
     );
@@ -53,7 +43,7 @@ export default function InspectorQueue() {
 
   async function run(kind: "approve" | "reject") {
     if (!trade) return;
-    setSelected(trade.id);
+    setFocus(trade.id);
     setBusy(kind);
     try {
       if (kind === "approve") {
@@ -71,76 +61,57 @@ export default function InspectorQueue() {
     }
   }
 
+  const ref = tradeRef(s.trades, trade.id);
+  const matched = docs.length;
+
   return (
     <div>
-      {header}
-      <TradePicker trades={trades} value={trade.id} onChange={setSelected} />
+      <PageHeader eyebrow={`Inspector · Verification · ${ref}`} title="Review shipment proof">
+        <StatusPill status={trade.status} />
+      </PageHeader>
 
       {/* PLACEHOLDER[P19]: one designated inspector key (a demo key held by the server in chain mode); its approval is an attestation, not proof of the physical shipment → REAL: multisig verifiers, shipping-line data, electronic bills of lading or an oracle attestation (see docs/ROADMAP.md §7) */}
-      <div className="mb-6 flex gap-3 rounded-2xl border border-inspector/25 bg-inspector/[0.06] px-5 py-4">
-        <Stamp className="mt-0.5 size-5 shrink-0 text-inspector" />
-        <div className="text-sm leading-relaxed">
-          <div className="flex flex-wrap items-center gap-2 font-medium">
-            You are the bridge between the physical shipment and the chain.
-            <PlaceholderTag id="P19" />
+      <div className="grid overflow-hidden rounded-[4px] border-[1.5px] border-fg md:grid-cols-3">
+        <div className="bg-panel p-5 sm:p-6">
+          <div className="eyebrow text-muted">Off-chain</div>
+          <div className="mt-2 text-[17px] font-semibold">Physical shipment</div>
+          <p className="mt-1 text-sm text-muted">{trade.goods}</p>
+        </div>
+        <div className="bg-fg p-5 text-bg sm:p-6">
+          <div className="eyebrow flex items-center gap-2 text-bg/70">
+            The bridge <PlaceholderTag id="P19" />
           </div>
-          <p className="mt-1 text-muted">
-            The contract can&apos;t see the goods. It checks that <span className="text-fg">you, the authorised inspector,</span>{" "}
-            approved, and that every required document hash is recorded. Inspect the shipment before you sign.
-          </p>
+          <div className="mt-2 text-[17px] font-semibold">You, the verifier</div>
+          <p className="mt-1 text-sm text-bg/80">Your signed approval is the only link between the goods and the payment.</p>
+        </div>
+        <div className="border-t border-line bg-panel p-5 sm:p-6 md:border-l md:border-t-0">
+          <div className="eyebrow text-muted">On-chain</div>
+          <div className="mt-2 text-[17px] font-semibold">Escrow contract</div>
+          <p className="mt-1 text-sm text-muted">Checks your signature and that every required hash is recorded, not the goods.</p>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <div className="space-y-6">
-          <section className="card p-5 sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-lg font-semibold tracking-tight">{trade.title}</div>
-                <div className="mt-1 text-sm text-muted">{trade.goods}</div>
-              </div>
-              <StatusPill status={trade.status} />
-            </div>
-            <div className="mt-5 grid gap-4 border-t border-line pt-5 sm:grid-cols-2 lg:grid-cols-4">
-              <Party role="buyer" addr={trade.buyer} />
-              <Party role="seller" addr={trade.seller} />
-              <div>
-                <div className="text-xs text-muted">Escrow balance</div>
-                <div className="mt-0.5 text-lg font-semibold">
-                  <Amount value={escrow} className={escrow ? "text-money" : ""} />
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-muted">Deadline</div>
-                <div className="mt-0.5 text-sm font-medium tabular-nums">{left ? `in ${fmtDuration(left)}` : "Passed"}</div>
-                <div className="text-xs text-muted">{fmtDate(trade.deadline)}</div>
-              </div>
-            </div>
-          </section>
-
-          <section className="card overflow-hidden">
-            <div className="flex items-center justify-between border-b border-line px-5 py-4">
-              <div className="font-medium">Recorded documents</div>
-              <span className="text-xs text-muted">
-                {docs.length} of {trade.requiredDocs.length} required
-              </span>
-            </div>
-            <ul className="divide-y divide-line">
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0 space-y-9">
+          <section>
+            <SectionHead title="Documents and on-chain hashes" note={`${matched} of ${trade.requiredDocs.length} recorded`} />
+            <ul>
               {trade.requiredDocs.map((d) => {
                 const doc = docs.find((x) => x.documentType === d);
                 return (
-                  <li key={d} className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-5 py-3.5">
+                  <li key={d} className="flex flex-wrap items-center gap-x-6 gap-y-1.5 border-b border-line py-3.5">
                     <div className="min-w-0 flex-1 basis-48">
-                      <div className="text-sm font-medium">{DOC_LABELS[d]}</div>
-                      <div className="truncate text-xs text-muted">{doc ? `${doc.filename} · ${fmtDate(doc.submittedAt)}` : "Not submitted"}</div>
+                      <div className="text-[15px] font-medium">{DOC_LABELS[d]}</div>
+                      <div className="truncate text-[13px] text-muted">{doc ? doc.filename : "Not submitted"}</div>
                     </div>
                     {doc ? (
-                      <div className="flex flex-wrap items-center gap-3">
-                        <Hash value={doc.hash} n={10} />
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <Hash value={doc.hash} n={10} className="!text-fg" />
                         {doc.txSig && <TxLink sig={doc.txSig} />}
+                        <span className="text-[13px] font-semibold text-money-ink">✓ Recorded</span>
                       </div>
                     ) : (
-                      <span className="text-xs text-danger/80">missing</span>
+                      <span className="text-[13px] font-medium text-danger">Missing</span>
                     )}
                   </li>
                 );
@@ -148,44 +119,37 @@ export default function InspectorQueue() {
             </ul>
           </section>
 
-          <section className="card p-5 sm:p-6">
-            <div className="mb-4">
-              <div className="font-medium">Verify a document</div>
-              <p className="mt-1 text-sm text-muted">
-                Got a copy from the seller or the shipping line? Check it against the hash on-chain. Change a single
-                character and it fails.
-              </p>
-            </div>
+          <section>
+            <SectionHead title="Verify a document" note="Change a single character and it fails." />
+            <p className="mb-4 mt-3 text-sm text-muted">
+              Got a copy from the seller or the shipping line? Check it against the hash recorded on-chain.
+            </p>
             <VerifyDropZone key={trade.id} trade={trade} docs={docs} />
           </section>
         </div>
 
-        <aside className="h-fit lg:sticky lg:top-24">
-          <div className="card p-5">
-            <div className="flex items-center justify-between gap-2">
-              <div className="eyebrow text-inspector">Decision</div>
-              <PlaceholderTag id="P7" />
+        <aside className="h-fit lg:sticky lg:top-8">
+          <div className="card p-6">
+            <div className="space-y-2.5 text-[15px]">
+              <KV k="Seller" v={PARTY_NAMES.seller} />
+              <KV k="Buyer" v={PARTY_NAMES.buyer} />
+              <KV k="Escrow balance" v={<span className="font-mono">{fmtMoney(escrow)} {UNIT}</span>} />
+              <KV k="Deadline" v={fmtDate(trade.deadline)} />
+              <KV k="Time left" v={left ? fmtDuration(left) : "passed"} />
             </div>
-            <div className="mt-2 text-sm text-muted">
-              Approving releases{" "}
-              <span className="font-medium text-fg">
-                {fmtAmount(escrow)} {UNIT}
-              </span>{" "}
-              from escrow to the seller in one transaction.
-            </div>
-            <div className="mt-5 grid gap-2">
-              <button onClick={() => run("approve")} disabled={!ready || !!busy} className="btn btn-money w-full">
-                {busy === "approve" ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+            <div className="mt-5 grid gap-2.5 border-t border-line pt-5">
+              <button onClick={() => run("approve")} disabled={!ready || !!busy} className="btn btn-money w-full py-3.5">
+                {busy === "approve" && <Loader2 className="size-4 animate-spin" />}
                 {busy === "approve" ? "Approving and releasing…" : "Approve shipment"}
               </button>
-              <button onClick={() => run("reject")} disabled={!ready || !!busy} className="btn btn-danger w-full">
-                {busy === "reject" ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
+              <button onClick={() => run("reject")} disabled={!ready || !!busy} className="btn btn-danger w-full py-3.5">
+                {busy === "reject" && <Loader2 className="size-4 animate-spin" />}
                 Reject
               </button>
             </div>
-            <p className="mt-3 text-xs leading-relaxed text-muted">
+            <p className="mt-3 text-[13px] leading-relaxed text-muted">
               {ready
-                ? "All required documents are recorded."
+                ? "Approval releases the escrow to the seller in the same transaction."
                 : trade.status === "Paid"
                   ? "Already approved and paid."
                   : trade.status === "Refunded"
@@ -196,14 +160,26 @@ export default function InspectorQueue() {
                         ? ""
                         : "Waiting for the seller to submit every required document."}
             </p>
-            <Link href={`/trade/${trade.id}`} className="mt-4 inline-flex items-center gap-1 text-sm text-muted hover:text-fg">
-              Trade record <ArrowRight className="size-3.5" />
-            </Link>
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <Link href={`/trade/${trade.id}`} className="inline-flex items-center gap-1 text-sm font-medium text-money-ink hover:underline">
+                Trade record <ArrowRight className="size-3.5" />
+              </Link>
+              <PlaceholderTag id="P7" />
+            </div>
           </div>
         </aside>
       </div>
 
       <SettlementCard settlement={settlement} onClose={() => setSettlement(null)} />
+    </div>
+  );
+}
+
+function KV({ k, v }: { k: string; v: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4">
+      <span className="text-muted">{k}</span>
+      <span className="text-right">{v}</span>
     </div>
   );
 }

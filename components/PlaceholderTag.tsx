@@ -1,6 +1,6 @@
 import { CHAIN_MODE } from "@/lib/config";
 
-// Small dashed tag marking values that are fake for now.
+// Small yellow MOCK chip marking values that are fake for now (id in the tooltip).
 // Hide all of them for the pitch with NEXT_PUBLIC_SHOW_PLACEHOLDERS=false.
 const SHOW = process.env.NEXT_PUBLIC_SHOW_PLACEHOLDERS !== "false";
 
@@ -16,9 +16,10 @@ export function PlaceholderTag({ id, className = "" }: { id: string; className?:
   return (
     <span
       title={`Placeholder ${id}, see docs/PLACEHOLDERS.md`}
-      className={`inline-flex shrink-0 items-center rounded-md border border-dashed border-warn/60 px-1.5 py-px align-middle font-mono text-[10px] font-medium uppercase leading-4 tracking-wide text-warn/90 ${className}`}
+      data-placeholder={id}
+      className={`inline-flex shrink-0 items-center rounded-[3px] border border-mock-line bg-mock px-[7px] py-px align-middle font-mono text-[10px] font-semibold uppercase leading-4 tracking-[0.08em] text-mock-ink ${className}`}
     >
-      placeholder {id}
+      mock
     </span>
   );
 }

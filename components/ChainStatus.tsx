@@ -28,8 +28,8 @@ export function ChainStatus() {
     msg = <>The buyer wallet has 0 tUSDC. Re-run <code className="font-mono">npm run setup</code> to mint test USDC.</>;
   if (!msg) return null;
   return (
-    <div className="border-b border-warn/30 bg-warn/10 px-4 py-2.5 text-sm text-warn sm:px-6">
-      <div className="mx-auto flex max-w-6xl items-start gap-2 break-all">
+    <div className="border-b border-warn/40 bg-warn/10 px-4 py-2.5 text-sm text-fg sm:px-7">
+      <div className="flex items-start gap-2 break-all">
         <AlertTriangle className="mt-0.5 size-4 shrink-0" />
         <div>{msg}</div>
       </div>

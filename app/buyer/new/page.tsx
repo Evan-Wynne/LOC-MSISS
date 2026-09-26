@@ -7,9 +7,9 @@ import { createTrade } from "@/lib/loc";
 import { useLoc } from "@/lib/use-loc";
 import { DEMO_WALLETS, PARTY_NAMES } from "@/lib/placeholder-data";
 import { DOC_LABELS, DOC_TYPES, type DocumentType } from "@/lib/types";
-import { fmtAmount, fmtDate, shortAddr } from "@/lib/explorer";
-import { UNIT, UNIT_LONG } from "@/lib/config";
-import { Field, PageHeader, Row, RoleDot, fmtDuration } from "@/components/ui";
+import { fmtAmount, fmtDate, fmtMoney, shortAddr } from "@/lib/explorer";
+import { CHAIN_MODE, UNIT, UNIT_LONG } from "@/lib/config";
+import { FormRow, PageHeader, Row, fmtDuration } from "@/components/ui";
 import { PlaceholderTag } from "@/components/PlaceholderTag";
 import { useApp } from "@/components/Providers";
 
@@ -81,138 +81,113 @@ export default function NewTrade() {
 
   return (
     <div>
-      <PageHeader
-        role="buyer"
-        eyebrow="Buyer · Screen A"
-        title="Create a letter of credit"
-        sub="Agree the terms with your seller, then lock the payment in escrow. It's released only when the inspector approves the shipment, or refunded to you after the deadline."
-      />
-      <form onSubmit={submit} className="grid gap-6 lg:grid-cols-[1fr_380px]">
-        <div className="card space-y-5 p-5 sm:p-6">
-          <Field label="Trade title">
+      <PageHeader eyebrow="Buyer · New letter of credit" title="Terms of trade" />
+      <form onSubmit={submit} className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="-mt-4">
+          <FormRow label="Trade title">
             <input className="input" value={f.title} maxLength={64} onChange={(e) => set("title", e.target.value)} required />
-          </Field>
-          <Field label="Goods description" hint="Quantity, Incoterm">
+          </FormRow>
+          <FormRow label={<span className="inline-flex items-center gap-2">Seller <PlaceholderTag id="P12" /></span>}>
+            <LockedParty role="seller" />
+          </FormRow>
+          <FormRow label="Goods description" hint="Quantity, Incoterm">
             <textarea className="input min-h-20" value={f.goods} maxLength={128} onChange={(e) => set("goods", e.target.value)} required />
-          </Field>
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Payment amount" hint={UNIT_LONG}>
-              <input className="input tabular-nums" type="number" min={1} step="any" value={f.amount} onChange={(e) => set("amount", +e.target.value)} />
-            </Field>
-            <Field label="Shipment deadline" hint={f.deadline ? `in ${fmtDuration(left)}` : undefined}>
+          </FormRow>
+          <FormRow label="Payment amount">
+            <div className="relative max-w-[280px]">
               <input
-                className="input"
-                type="datetime-local"
-                value={f.deadline ? toLocalInput(f.deadline) : ""}
-                onChange={(e) => {
-                  const ms = new Date(e.target.value).getTime();
-                  if (!isNaN(ms)) setF((x) => ({ ...x, deadline: ms, preset: -1 }));
-                }}
+                className="input pr-16 font-mono tabular-nums"
+                type="number"
+                min={1}
+                step="any"
+                value={f.amount}
+                onChange={(e) => set("amount", +e.target.value)}
+                aria-label="Payment amount"
               />
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {PRESETS.map((p, i) => (
-                  <button
-                    key={p.label}
-                    type="button"
-                    onClick={() => setF((x) => ({ ...x, deadline: Date.now() + p.ms, preset: i }))}
-                    className={`rounded-md px-2 py-1 text-xs ring-1 transition-colors ${
-                      f.preset === i ? "bg-panel-2 text-fg ring-fg/30" : "text-muted ring-line hover:text-fg"
-                    }`}
-                  >
-                    {p.label}
-                    {p.hint && <span className="text-muted"> · {p.hint}</span>}
-                  </button>
-                ))}
-              </div>
-            </Field>
-          </div>
-
-          <div>
-            <div className="mb-1.5 text-sm font-medium">Required documents</div>
-            <div className="flex flex-wrap gap-2">
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[13px] text-muted">{UNIT}</span>
+            </div>
+            {f.amount > balance && <p className="mt-2 text-xs text-danger">That&apos;s more than the buyer wallet holds ({fmtMoney(balance)} {UNIT}).</p>}
+          </FormRow>
+          <FormRow label="Shipment deadline" hint={f.deadline ? `in ${fmtDuration(left)}` : undefined}>
+            <input
+              className="input max-w-[280px]"
+              type="datetime-local"
+              value={f.deadline ? toLocalInput(f.deadline) : ""}
+              onChange={(e) => {
+                const ms = new Date(e.target.value).getTime();
+                if (!isNaN(ms)) setF((x) => ({ ...x, deadline: ms, preset: -1 }));
+              }}
+              aria-label="Shipment deadline"
+            />
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {PRESETS.map((p, i) => (
+                <button
+                  key={p.label}
+                  type="button"
+                  onClick={() => setF((x) => ({ ...x, deadline: Date.now() + p.ms, preset: i }))}
+                  className={`rounded-[3px] border px-2 py-1 text-xs transition-colors ${
+                    f.preset === i ? "border-fg bg-fg text-bg" : "border-line-2 bg-panel text-muted hover:text-fg"
+                  }`}
+                >
+                  {p.label}
+                  {p.hint && <span className="opacity-70"> · {p.hint}</span>}
+                </button>
+              ))}
+            </div>
+          </FormRow>
+          <FormRow label="Required documents" hint="Each needs a recorded hash before approval">
+            <div className="space-y-2 pt-[9px]">
               {DOC_TYPES.map((d) => {
                 const on = f.requiredDocs.includes(d);
                 return (
-                  <button
-                    key={d}
-                    type="button"
-                    onClick={() => toggleDoc(d)}
-                    aria-pressed={on}
-                    className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm ring-1 transition-colors ${
-                      on ? "bg-panel-2 text-fg ring-fg/25" : "text-muted ring-line hover:text-fg"
-                    }`}
-                  >
-                    <span className={`grid size-4 place-items-center rounded ${on ? "bg-fg text-bg" : "ring-1 ring-line-2"}`}>
+                  <button key={d} type="button" onClick={() => toggleDoc(d)} aria-pressed={on} className="flex items-center gap-2.5 text-[15px]">
+                    <span className={`grid size-4 place-items-center rounded-[3px] border ${on ? "border-money bg-money text-white" : "border-line-2 bg-panel"}`}>
                       {on && <Check className="size-3" strokeWidth={3} />}
                     </span>
                     {DOC_LABELS[d]}
                   </button>
                 );
               })}
+              {f.requiredDocs.length === 0 && <p className="text-xs text-danger">Pick at least one.</p>}
             </div>
-            <p className="mt-2 text-xs text-muted">The seller must record a hash for each one before the inspector can approve.</p>
-          </div>
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            <LockedParty label="Seller" role="seller" />
-            <LockedParty label="Inspector / verifier" role="inspector" />
-          </div>
+          </FormRow>
+          <FormRow label={<span className="inline-flex items-center gap-2">Inspector / verifier <PlaceholderTag id="P12" /></span>}>
+            <LockedParty role="inspector" />
+          </FormRow>
         </div>
 
-        <aside className="h-fit lg:sticky lg:top-24">
-          <div className="card overflow-hidden">
-            <div className="flex items-center justify-between border-b border-line px-5 py-3">
-              <span className="eyebrow text-muted">LC terms</span>
-              <span className="font-mono text-[11px] text-muted">draft</span>
+        <aside className="h-fit lg:sticky lg:top-8">
+          <div className="rounded-[4px] border-[1.5px] border-fg bg-panel p-6">
+            <div className="eyebrow text-muted">Escrow</div>
+            <div className="mt-4 font-mono text-[34px] font-medium leading-none tabular-nums">{fmtMoney(f.amount || 0)}</div>
+            <div className="mt-2 text-sm text-muted">{UNIT_LONG}, held by the contract</div>
+
+            <div className="mt-5 space-y-2.5 border-t border-line pt-5 text-sm leading-relaxed">
+              <p>Released to the seller when the verifier approves.</p>
+              <p>Refundable to you after {f.deadline ? fmtDate(f.deadline) : "the deadline"}.</p>
             </div>
-            <div className="p-5">
-              <div className="text-xs text-muted">Amount to lock in escrow</div>
-              <div className="mt-1 text-4xl font-semibold tracking-tight tabular-nums">
-                {fmtAmount(f.amount || 0)} <span className="text-lg font-normal text-muted">{UNIT}</span>
-              </div>
-              <div className="mt-1 text-xs text-muted">{UNIT_LONG}</div>
 
-              <div className="mt-5 space-y-0.5 border-t border-line pt-4 text-sm">
-                <Row k="Deadline" v={f.deadline ? fmtDate(f.deadline) : "…"} />
-                <Row k="Seller" v={<span className="font-mono text-xs">{shortAddr(DEMO_WALLETS.seller)}</span>} />
-                <Row k="Inspector" v={<span className="font-mono text-xs">{shortAddr(DEMO_WALLETS.inspector)}</span>} />
-                <Row
-                  k={
-                    <span className="inline-flex items-center gap-1.5">
-                      Your balance <PlaceholderTag id="P13" />
-                    </span>
-                  }
-                  v={`${fmtAmount(balance)} ${UNIT}`}
-                />
-              </div>
-
-              <div className="mt-4 border-t border-line pt-4">
-                <div className="text-xs text-muted">Documents the seller must prove</div>
-                <ul className="mt-2 space-y-1.5 text-sm">
-                  {f.requiredDocs.length === 0 && <li className="text-danger">Pick at least one</li>}
-                  {f.requiredDocs.map((d) => (
-                    <li key={d} className="flex items-center gap-2">
-                      <span className="size-1.5 rounded-full bg-seller" /> {DOC_LABELS[d]}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="mt-4 rounded-lg bg-panel-2 px-3.5 py-3 text-xs leading-relaxed text-muted ring-1 ring-line">
-                <span className="text-fg">Settlement rule.</span> Inspector approves → released to seller. Deadline
-                passes without approval → refundable to you.
-              </div>
-
-              <button className="btn btn-money mt-5 w-full" disabled={busy || !valid}>
-                {busy ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-4" />}
-                {busy ? "Locking funds in escrow…" : "Fund escrow"}
-              </button>
-              {f.amount > balance && <p className="mt-2 text-xs text-danger">That&apos;s more than the buyer wallet holds.</p>}
-              <div className="mt-3 flex justify-center">
-                <PlaceholderTag id="P4" />
-              </div>
+            <div className="mt-5 space-y-0.5 border-t border-line pt-4 text-sm">
+              <Row
+                k={
+                  <span className="inline-flex items-center gap-1.5">
+                    Your balance <PlaceholderTag id="P13" />
+                  </span>
+                }
+                v={<span className="font-mono font-normal">{fmtMoney(balance)}</span>}
+              />
+              <Row k="Documents" v={<span className="font-normal">{f.requiredDocs.length} required</span>} />
             </div>
+
+            <button className="btn btn-money mt-5 w-full py-3.5" disabled={busy || !valid}>
+              {busy ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-4" />}
+              {busy ? "Locking funds in escrow…" : "Fund escrow"}
+            </button>
+            {!CHAIN_MODE && (
+              <div className="mt-3 flex items-center gap-2 text-xs text-muted">
+                <PlaceholderTag id="P4" /> Funding is simulated in mock mode.
+              </div>
+            )}
           </div>
         </aside>
       </form>
@@ -220,21 +195,11 @@ export default function NewTrade() {
   );
 }
 
-function LockedParty({ label, role }: { label: string; role: "seller" | "inspector" }) {
+function LockedParty({ role }: { role: "seller" | "inspector" }) {
   return (
-    <Field
-      label={label}
-      hint={
-        <span className="inline-flex items-center gap-1.5">
-          demo wallet <PlaceholderTag id="P12" />
-        </span>
-      }
-    >
-      <div className="input flex items-center gap-2">
-        <RoleDot role={role} />
-        <span className="truncate">{PARTY_NAMES[role]}</span>
-        <span className="ml-auto font-mono text-xs text-muted">{shortAddr(DEMO_WALLETS[role])}</span>
-      </div>
-    </Field>
+    <div className="input flex items-center gap-2">
+      <span className="truncate">{PARTY_NAMES[role]}</span>
+      <span className="ml-auto font-mono text-[13px] text-muted">{shortAddr(DEMO_WALLETS[role])}</span>
+    </div>
   );
 }

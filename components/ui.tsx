@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Check, Copy, ExternalLink } from "lucide-react";
 import type { Role, TradeStatus } from "@/lib/types";
-import { explorerAddress, explorerTx, fmtAmount, shortAddr } from "@/lib/explorer";
+import { explorerAddress, explorerTx, fmtMoney, shortAddr } from "@/lib/explorer";
 import { PARTY_NAMES, ROLE_LABELS } from "@/lib/placeholder-data";
 import { UNIT } from "@/lib/config";
 
@@ -11,21 +11,22 @@ import { UNIT } from "@/lib/config";
 export const ROLE_TEXT: Record<Role, string> = { buyer: "text-buyer", seller: "text-seller", inspector: "text-inspector" };
 export const ROLE_BG: Record<Role, string> = { buyer: "bg-buyer", seller: "bg-seller", inspector: "bg-inspector" };
 
+// Square badges, tinted by meaning: amber waiting on the seller, blue waiting on
+// the inspector, green paid, red rejected, grey refunded.
 const STATUS: Record<TradeStatus, { label: string; cls: string }> = {
-  Funded: { label: "Funded", cls: "bg-money/10 text-money ring-money/25" },
-  DocumentsSubmitted: { label: "Awaiting inspection", cls: "bg-inspector/10 text-inspector ring-inspector/25" },
-  Verified: { label: "Verified", cls: "bg-money/10 text-money ring-money/25" },
-  Paid: { label: "Paid", cls: "bg-fg/5 text-fg ring-line-2" },
-  Refunded: { label: "Refunded", cls: "bg-buyer/10 text-buyer ring-buyer/25" },
-  Rejected: { label: "Rejected", cls: "bg-danger/10 text-danger ring-danger/25" },
+  Funded: { label: "Funded", cls: "border-warn/45 bg-warn/[0.08] text-[oklch(0.45_0.1_70)]" },
+  DocumentsSubmitted: { label: "Documents submitted", cls: "border-info/40 bg-info/[0.07] text-info" },
+  Verified: { label: "Verified", cls: "border-money/40 bg-money/[0.08] text-money-ink" },
+  Paid: { label: "Paid", cls: "border-money/40 bg-money/[0.08] text-money-ink" },
+  Refunded: { label: "Refunded", cls: "border-line-2 text-muted" },
+  Rejected: { label: "Rejected", cls: "border-danger/50 bg-danger/10 text-danger" },
 };
 
-export function StatusPill({ status }: { status: TradeStatus }) {
+export function StatusPill({ status, label }: { status: TradeStatus; label?: string }) {
   const s = STATUS[status];
   return (
-    <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${s.cls}`}>
-      <span className="size-1.5 rounded-full bg-current" />
-      {s.label}
+    <span className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-[3px] border px-2.5 py-1 text-[13px] font-medium leading-none ${s.cls}`}>
+      {label ?? s.label}
     </span>
   );
 }
@@ -50,8 +51,8 @@ export function Party({ role, addr }: { role: Role; addr: string }) {
 
 export function Amount({ value, className = "", unitClass = "text-muted" }: { value: number; className?: string; unitClass?: string }) {
   return (
-    <span className={`tabular-nums ${className}`}>
-      {fmtAmount(value)} <span className={`font-normal ${unitClass}`} style={{ fontSize: "0.55em" }}>{UNIT}</span>
+    <span className={`font-mono tabular-nums ${className}`}>
+      {fmtMoney(value)} <span className={`font-sans font-normal ${unitClass}`} style={{ fontSize: "0.55em" }}>{UNIT}</span>
     </span>
   );
 }
@@ -81,9 +82,9 @@ export function TxLink({ sig, label = "tx" }: { sig: string; label?: string }) {
       href={explorerTx(sig)}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex items-center gap-1 font-mono text-xs text-muted hover:text-fg"
+      className="inline-flex items-center gap-1 font-mono text-xs text-money-ink hover:underline"
     >
-      {label} {shortAddr(sig, 4)} <ExternalLink className="size-3" />
+      {label ? `${label} ` : ""}{shortAddr(sig, 4)} <ExternalLink className="size-3" />
     </a>
   );
 }
@@ -106,29 +107,53 @@ export function fmtDuration(secs: number) {
 }
 
 export function PageHeader({
-  role,
   eyebrow,
   title,
   sub,
+  tone = "fg",
   children,
 }: {
   role?: Role;
-  eyebrow: string;
-  title: string;
+  eyebrow: React.ReactNode;
+  title: React.ReactNode;
   sub?: React.ReactNode;
+  tone?: "fg" | "danger";
   children?: React.ReactNode;
 }) {
+  const danger = tone === "danger";
   return (
-    <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-      <div className="min-w-0">
-        <div className={`eyebrow flex items-center gap-2 ${role ? ROLE_TEXT[role] : "text-muted"}`}>
-          {role && <RoleDot role={role} />}
-          {eyebrow}
+    <div className={`mb-7 border-b-[1.5px] pb-5 ${danger ? "border-danger" : "border-fg"}`}>
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+        <div className="min-w-0">
+          <div className={`font-mono text-xs uppercase tracking-[0.08em] ${danger ? "text-danger" : "text-muted"}`}>{eyebrow}</div>
+          <h1 className="mt-2.5 text-[28px] font-semibold leading-tight tracking-[-0.02em] sm:text-[32px]">{title}</h1>
         </div>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-[34px]">{title}</h1>
-        {sub && <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted">{sub}</p>}
+        {children && <div className="flex shrink-0 flex-wrap items-center gap-3 pb-1">{children}</div>}
       </div>
-      {children}
+      {sub && <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted">{sub}</p>}
+    </div>
+  );
+}
+
+// Section title with a heavy ink rule under it, as in the design's tables.
+export function SectionHead({ title, note }: { title: React.ReactNode; note?: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1 border-b-[1.5px] border-fg pb-3">
+      <h2 className="text-[20px] font-semibold tracking-[-0.01em]">{title}</h2>
+      {note && <div className="text-[13px] text-muted">{note}</div>}
+    </div>
+  );
+}
+
+// Label-left form row used on the create-trade screen.
+export function FormRow({ label, hint, children }: { label: React.ReactNode; hint?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="grid gap-2 border-b border-line py-4 sm:grid-cols-[200px_minmax(0,1fr)] sm:items-start sm:gap-6">
+      <div className="pt-0 text-sm text-muted sm:pt-[11px]">
+        {label}
+        {hint && <div className="mt-0.5 text-xs">{hint}</div>}
+      </div>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }
@@ -155,5 +180,5 @@ export function Row({ k, v }: { k: React.ReactNode; v: React.ReactNode }) {
 }
 
 export function Empty({ children }: { children: React.ReactNode }) {
-  return <div className="card p-10 text-center text-sm text-muted">{children}</div>;
+  return <div className="card p-10 text-center text-[15px] text-muted">{children}</div>;
 }

@@ -44,18 +44,18 @@ const previewRows = [
 function HeroPreview() {
   return (
     <div aria-hidden className="pointer-events-none hidden select-none lg:block">
-      <div className="card overflow-hidden shadow-2xl shadow-black/60">
+      <div className="card overflow-hidden shadow-lg shadow-fg/10">
         <div className="flex items-center justify-between border-b border-line px-5 py-3">
           <span className="eyebrow text-muted">Letter of credit</span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-inspector/10 px-2 py-0.5 text-xs font-medium text-inspector ring-1 ring-inspector/25">
-            <span className="size-1.5 rounded-full bg-current" /> Awaiting inspection
+          <span className="inline-flex items-center rounded-[3px] border border-info/40 bg-info/[0.07] px-2.5 py-1 text-[13px] font-medium leading-none text-info">
+            Documents submitted
           </span>
         </div>
         <div className="px-5 pt-5">
           <div className="text-sm text-muted">Cocoa beans, 200 bags · FOB Tema</div>
           <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-4xl font-semibold tracking-tight tabular-nums text-money">36,000</span>
-            <span className="text-sm text-money/60">tUSDC locked in escrow</span>
+            <span className="font-mono text-4xl font-medium tabular-nums text-money-ink">36,000</span>
+            <span className="text-sm text-muted">tUSDC locked in escrow</span>
           </div>
         </div>
         <ul className="mt-5 divide-y divide-line border-t border-line">
@@ -63,7 +63,7 @@ function HeroPreview() {
             <li key={r.label} className="flex items-center gap-3 px-5 py-3 text-sm">
               <span
                 className={`grid size-5 shrink-0 place-items-center rounded-full ring-1 ${
-                  r.done ? "bg-money/15 text-money ring-money/40" : "ring-fg/40"
+                  r.done ? "bg-money text-white ring-money" : "ring-fg/40"
                 }`}
               >
                 {r.done ? <span className="text-[10px] font-bold">✓</span> : <span className="size-1.5 animate-pulse rounded-full bg-fg" />}
@@ -96,7 +96,7 @@ export default function Home() {
             href={CHAIN_MODE ? explorerAddress(PROGRAM_ID) : undefined}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-3 py-1 text-xs text-muted hover:text-fg"
+            className="inline-flex items-center gap-2 rounded-[3px] border border-line bg-panel px-3 py-1 font-mono text-[11px] uppercase tracking-[0.06em] text-muted hover:text-fg"
           >
             <span className="size-1.5 rounded-full bg-money" /> Running on Solana devnet · test tokens only
           </a>
@@ -124,11 +124,11 @@ export default function Home() {
 
       <section id="how" className="scroll-mt-24">
         <div className="eyebrow text-muted">How it works</div>
-        <ol className="mt-4 grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="mt-4 grid gap-px overflow-hidden rounded-[4px] border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
           {steps.map(({ icon: Icon, title, who, dot, body }, i) => (
             <li key={title} className="bg-panel p-6">
               <div className="flex items-center justify-between">
-                <div className="grid size-9 place-items-center rounded-lg bg-panel-2 ring-1 ring-line">
+                <div className="grid size-9 place-items-center rounded-[4px] bg-panel-2 ring-1 ring-line">
                   <Icon className="size-4" />
                 </div>
                 <span className="font-mono text-xs text-muted">0{i + 1}</span>
@@ -145,7 +145,7 @@ export default function Home() {
 
       <section className="mt-16 grid gap-4 lg:grid-cols-[1fr_1fr]">
         <div className="card p-6 sm:p-7">
-          <div className="eyebrow text-inspector">The honest part</div>
+          <div className="eyebrow text-muted">The honest part</div>
           <h2 className="mt-2 text-xl font-semibold tracking-tight">What the chain can and can&apos;t know</h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             A blockchain can&apos;t see a container leave a port. In this MVP a designated verifier (a shipping line,
@@ -155,13 +155,13 @@ export default function Home() {
           </p>
           <ul className="mt-4 grid gap-2 text-sm">
             <li className="flex gap-2">
-              <span className="text-money">✓</span>
+              <span className="text-money-ink">✓</span>
               <span>
                 <span className="text-fg">Enforced by code:</span> <span className="text-muted">the funds are locked, only the named inspector can release them, and the refund is only possible after the deadline.</span>
               </span>
             </li>
             <li className="flex gap-2">
-              <span className="text-money">✓</span>
+              <span className="text-money-ink">✓</span>
               <span>
                 <span className="text-fg">Tamper-evident:</span> <span className="text-muted">document hashes on-chain, so changing one character is detectable.</span>
               </span>
@@ -194,10 +194,10 @@ export default function Home() {
       <section className="mt-16">
         <div className="eyebrow text-muted">Why Solana</div>
         <h2 className="mt-2 text-2xl font-semibold tracking-tight">Why this belongs on Solana</h2>
-        <div className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-px overflow-hidden rounded-[4px] border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
           {why.map(({ icon: Icon, title, body }) => (
             <div key={title} className="bg-panel p-6">
-              <Icon className="size-4 text-money" />
+              <Icon className="size-4 text-money-ink" />
               <div className="mt-4 font-medium">{title}</div>
               <p className="mt-1.5 text-sm leading-relaxed text-muted">{body}</p>
             </div>
@@ -205,10 +205,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mt-16 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-panel px-6 py-6 sm:px-7">
+      <section className="mt-16 flex flex-wrap items-center justify-between gap-4 rounded-[4px] border border-line bg-panel px-6 py-6 sm:px-7">
         <div>
           <div className="font-medium">Run the whole flow in about a minute</div>
-          <p className="mt-1 text-sm text-muted">Switch between Buyer, Seller and Inspector with the control in the top right.</p>
+          <p className="mt-1 text-sm text-muted">Switch between Buyer, Seller and Inspector with the “Viewing as” control.</p>
         </div>
         <Link href="/buyer/new" className="btn btn-money">
           Create a trade <ArrowRight className="size-4" />

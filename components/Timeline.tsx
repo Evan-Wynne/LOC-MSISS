@@ -65,7 +65,7 @@ export function Timeline({ trade, docs, events }: { trade: Trade; docs: TradeDoc
           {i < steps.length - 1 && (
             <span
               className={`absolute left-[13px] top-7 h-[calc(100%-28px)] w-px md:left-8 md:top-[13px] md:h-px md:w-[calc(100%-20px)] ${
-                st.state === "done" ? "bg-money/50" : "bg-line"
+                st.state === "done" ? "bg-money" : "bg-line"
               }`}
             />
           )}
@@ -95,23 +95,23 @@ function Dot({ state, refund }: { state: StepState; refund?: boolean }) {
   const base = "relative z-10 grid size-[27px] shrink-0 place-items-center rounded-full ring-1";
   if (state === "done")
     return (
-      <span className={`${base} ${refund ? "bg-buyer/15 text-buyer ring-buyer/40" : "bg-money/15 text-money ring-money/40"}`}>
+      <span className={`${base} ${refund ? "bg-fg text-bg ring-fg" : "bg-money text-white ring-money"}`}>
         {refund ? <RotateCcw className="size-3.5" /> : <Check className="size-3.5" strokeWidth={2.5} />}
       </span>
     );
   if (state === "failed")
     return (
-      <span className={`${base} bg-danger/15 text-danger ring-danger/40`}>
+      <span className={`${base} bg-danger text-white ring-danger`}>
         <X className="size-3.5" strokeWidth={2.5} />
       </span>
     );
   if (state === "current")
     return (
-      <span className={`${base} bg-panel ring-fg/40`}>
+      <span className={`${base} bg-panel ring-fg`}>
         <span className="size-2 animate-pulse rounded-full bg-fg" />
       </span>
     );
-  return <span className={`${base} bg-panel ring-line`} />;
+  return <span className={`${base} bg-panel ring-line-2`} />;
 }
 
 const EVENT_LABEL: Record<TradeEventKind, string> = {
@@ -123,30 +123,31 @@ const EVENT_LABEL: Record<TradeEventKind, string> = {
   Refunded: "Escrow refunded to buyer",
 };
 
+const stamp = (ms: number) =>
+  new Date(ms).toLocaleString("en-IE", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" }).replace(",", "");
+
+// Ledger of every transaction on this trade, oldest first (design B, screen D).
 export function AuditTrail({ events }: { events: TradeEvent[] }) {
   return (
-    <ul className="divide-y divide-line">
-      {[...events].reverse().map((e) => (
-        <li key={e.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3">
-          <div className="min-w-0 flex-1 basis-56">
-            <div className="text-sm">
-              {EVENT_LABEL[e.kind]}
-              {e.kind === "DocumentSubmitted" && e.detail && (
-                <span className="text-muted"> · {DOC_LABELS[e.detail as keyof typeof DOC_LABELS] ?? e.detail}</span>
-              )}
-            </div>
-            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted">
-              {e.actor === "anyone" ? (
-                "Anyone (after deadline)"
-              ) : (
-                <>
-                  <RoleDot role={e.actor} /> {ROLE_LABELS[e.actor]}
-                </>
-              )}
-              <span>· {fmtDate(e.at)}</span>
-            </div>
-          </div>
-          <TxLink sig={e.txSig} />
+    <ul>
+      {events.map((e) => (
+        <li
+          key={e.id}
+          className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-0.5 border-b border-line py-3 md:grid-cols-[150px_minmax(0,1fr)_150px_120px]"
+        >
+          <span className="order-3 font-mono text-[13px] text-muted md:order-none">{stamp(e.at)}</span>
+          <span className={`min-w-0 text-[15px] ${e.kind === "Paid" || e.kind === "Refunded" ? "font-semibold" : ""}`}>
+            {EVENT_LABEL[e.kind]}
+            {e.kind === "DocumentSubmitted" && e.detail && (
+              <span className="text-muted"> · {DOC_LABELS[e.detail as keyof typeof DOC_LABELS] ?? e.detail}</span>
+            )}
+          </span>
+          <span className="order-4 text-[13px] text-muted md:order-none md:text-[15px] md:text-fg">
+            {e.actor === "anyone" ? "Anyone (after deadline)" : ROLE_LABELS[e.actor]}
+          </span>
+          <span className="row-span-2 self-center justify-self-end md:row-span-1">
+            <TxLink sig={e.txSig} label="" />
+          </span>
         </li>
       ))}
     </ul>

@@ -1,12 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { CheckCircle2, FileText, Fingerprint, Loader2, Sparkles, Upload } from "lucide-react";
+import { Fingerprint, Loader2 } from "lucide-react";
 import type { DocumentType, Trade, TradeDocument } from "@/lib/types";
 import { DOC_LABELS } from "@/lib/types";
 import { sha256Hex } from "@/lib/hash";
 import { sampleBlob, sampleFilename } from "@/lib/samples";
-import { fmtDate } from "@/lib/explorer";
 import { Hash, TxLink } from "./ui";
 import { PlaceholderTag } from "./PlaceholderTag";
 
@@ -47,40 +46,41 @@ export function DocumentSlot({
   const showPicker = !locked && (!recorded || replacing) && !staged;
 
   return (
-    <li className="flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4">
-      <div className="flex min-w-0 flex-1 basis-60 items-start gap-3">
-        <div
-          className={`grid size-9 shrink-0 place-items-center rounded-lg ring-1 ${
-            staged ? "bg-fg/5 ring-line-2" : recorded ? "bg-money/10 ring-money/25" : "bg-panel-2 ring-line"
-          }`}
-        >
-          {recorded && !staged ? <CheckCircle2 className="size-4 text-money" /> : <FileText className="size-4 text-muted" />}
-        </div>
-        <div className="min-w-0">
-          <div className="text-sm font-medium">{DOC_LABELS[type]}</div>
-          {staged ? (
-            <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
-              <span className="inline-flex items-center gap-1 text-fg/90">
-                <Fingerprint className="size-3" /> Hashed locally
-              </span>
-              <Hash value={staged.hash} />
-              <span className="truncate">{staged.filename}</span>
-              {staged.sample && <PlaceholderTag id="P20" />}
-            </div>
-          ) : recorded ? (
-            <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
-              <span className="text-money">Recorded on-chain</span>
-              <Hash value={recorded.hash} />
-              {recorded.txSig && <TxLink sig={recorded.txSig} />}
-              <span>· {fmtDate(recorded.submittedAt)}</span>
-            </div>
-          ) : (
-            <div className="mt-0.5 text-xs text-muted">Not provided yet</div>
-          )}
-        </div>
+    <li className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 border-b border-line py-4 md:grid-cols-[200px_minmax(0,1fr)_minmax(0,1.2fr)_auto] md:gap-x-6">
+      <div className="text-[15px] font-medium">{DOC_LABELS[type]}</div>
+
+      <div className="order-3 col-span-2 min-w-0 truncate text-sm text-muted md:order-none md:col-span-1">
+        {staged ? (
+          <span className="inline-flex items-center gap-2">
+            <span className="truncate">{staged.filename}</span>
+            {staged.sample && <PlaceholderTag id="P20" />}
+          </span>
+        ) : recorded ? (
+          recorded.filename
+        ) : (
+          "—"
+        )}
       </div>
 
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="order-4 col-span-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 md:order-none md:col-span-1">
+        {staged ? (
+          <>
+            <Hash value={staged.hash} n={10} className="!text-fg" />
+            <span className="inline-flex items-center gap-1 text-xs text-muted">
+              <Fingerprint className="size-3" /> hashed locally, not yet on-chain
+            </span>
+          </>
+        ) : recorded ? (
+          <>
+            <Hash value={recorded.hash} n={10} className="!text-fg" />
+            {recorded.txSig && <TxLink sig={recorded.txSig} />}
+          </>
+        ) : (
+          <span className="text-sm text-muted">Waiting for file</span>
+        )}
+      </div>
+
+      <div className="flex shrink-0 items-center justify-end gap-3">
         <input
           ref={input}
           type="file"
@@ -97,25 +97,30 @@ export function DocumentSlot({
           </span>
         ) : showPicker ? (
           <>
-            <button type="button" onClick={() => input.current?.click()} className="btn btn-ghost btn-sm">
-              <Upload className="size-3.5" /> Choose file
-            </button>
             <button
               type="button"
               onClick={() => stage(sampleBlob(trade, type), sampleFilename(trade, type), true)}
-              className="btn btn-ghost btn-sm"
+              className="text-[13px] text-muted underline-offset-2 hover:text-fg hover:underline"
             >
-              <Sparkles className="size-3.5" /> Use sample
+              Use sample
+            </button>
+            <button type="button" onClick={() => input.current?.click()} className="btn btn-ghost btn-sm">
+              Upload file
             </button>
           </>
         ) : staged ? (
-          <button type="button" onClick={() => onStage(undefined)} className="text-xs text-muted hover:text-fg">
+          <button type="button" onClick={() => onStage(undefined)} className="text-[13px] text-muted hover:text-fg">
             Remove
           </button>
-        ) : recorded && !locked ? (
-          <button type="button" onClick={() => setReplacing(true)} className="text-xs text-muted hover:text-fg">
-            Replace
-          </button>
+        ) : recorded ? (
+          <span className="inline-flex items-center gap-2 text-[13px]">
+            <span className="font-semibold text-money-ink">✓ Hashed</span>
+            {!locked && (
+              <button type="button" onClick={() => setReplacing(true)} className="text-muted hover:text-fg">
+                Replace
+              </button>
+            )}
+          </span>
         ) : null}
       </div>
     </li>

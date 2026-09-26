@@ -22,7 +22,7 @@ The number of distinct IDs must equal the number of rows below:
 grep -rho "PLACEHOLDER\[P[0-9]*\]" app components lib | sort -u | wc -l   # → 20
 ```
 
-In the UI, fake values carry a dashed orange **PLACEHOLDER P#** tag. Hide all tags for the pitch by setting `NEXT_PUBLIC_SHOW_PLACEHOLDERS=false` (locally in `.env.local`, or in Vercel → Settings → Environment Variables), then redeploy.
+In the UI, fake values carry a yellow **MOCK** chip (hover it to see its P# id). Hide all tags for the pitch by setting `NEXT_PUBLIC_SHOW_PLACEHOLDERS=false` (locally in `.env.local`, or in Vercel → Settings → Environment Variables), then redeploy.
 
 | ID | File | Fake in mock mode | Chain mode | Roadmap |
 |---|---|---|---|---|

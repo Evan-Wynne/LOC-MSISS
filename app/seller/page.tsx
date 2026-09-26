@@ -2,27 +2,28 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, Loader2, LockKeyhole, Send, ShieldCheck, Timer } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useLoc } from "@/lib/use-loc";
 import { docsOf, isOpen, submitDocument } from "@/lib/loc";
-import type { DocumentType } from "@/lib/types";
+import type { DocumentType, Trade } from "@/lib/types";
 import { DOC_LABELS } from "@/lib/types";
-import { UNIT_LONG } from "@/lib/config";
-import { Amount, Empty, PageHeader, Party, StatusPill, TxLink, fmtDuration, useCountdown } from "@/components/ui";
+import { UNIT } from "@/lib/config";
+import { PARTY_NAMES } from "@/lib/placeholder-data";
+import { explorerAddress, fmtDate, fmtMoney, shortAddr, tradeRef } from "@/lib/explorer";
+import { sellerOrder } from "@/lib/order";
+import { Empty, PageHeader, SectionHead, StatusPill, TxLink, fmtDuration, useCountdown } from "@/components/ui";
 import { DocumentSlot, type Staged } from "@/components/DocumentSlot";
-import { TradePicker } from "@/components/TradePicker";
 import { PlaceholderTag } from "@/components/PlaceholderTag";
 import { useApp } from "@/components/Providers";
 
 export default function SellerShipments() {
   const s = useLoc();
-  const { toast } = useApp();
-  const [selected, setSelected] = useState<string>();
+  const { toast, focus, setFocus } = useApp();
   const [staged, setStaged] = useState<Partial<Record<DocumentType, Staged>>>({});
   const [busy, setBusy] = useState(false);
 
-  const trades = s ? [...s.trades].sort((a, b) => Number(isOpen(b)) - Number(isOpen(a)) || b.createdAt - a.createdAt) : [];
-  const trade = trades.find((t) => t.id === selected) ?? trades[0];
+  const trades = s ? sellerOrder(s.trades) : [];
+  const trade = trades.find((t) => t.id === focus) ?? trades[0];
 
   useEffect(() => setStaged({}), [trade?.id]);
 
@@ -30,18 +31,10 @@ export default function SellerShipments() {
 
   if (!s) return <div className="h-96" />;
 
-  const header = (
-    <PageHeader
-      role="seller"
-      eyebrow="Seller · Screen B"
-      title="Ship and prove it"
-      sub="The buyer's payment is already locked in escrow. Submit your shipping documents; only their fingerprints are recorded on-chain."
-    />
-  );
   if (!trade)
     return (
       <div>
-        {header}
+        <PageHeader eyebrow="Seller · Shipment" title="Ship and prove it" />
         <Empty>No trades yet. Switch to Buyer to create one.</Empty>
       </div>
     );
@@ -51,11 +44,13 @@ export default function SellerShipments() {
   const expired = left === 0;
   const locked = !isOpen(trade) || expired;
   const stagedList = trade.requiredDocs.filter((d) => staged[d]);
+  const ready = trade.requiredDocs.filter((d) => staged[d] || docs.some((x) => x.documentType === d)).length;
   const missing = trade.requiredDocs.filter((d) => !docs.some((x) => x.documentType === d) && !staged[d]);
+  const ref = tradeRef(s.trades, trade.id);
 
   async function submit() {
     if (!trade) return;
-    setSelected(trade.id);
+    setFocus(trade.id);
     setBusy(true);
     let lastSig = "";
     try {
@@ -77,143 +72,138 @@ export default function SellerShipments() {
     }
   }
 
+  const rejected = trade.status === "Rejected";
+
   return (
     <div>
-      {header}
-      <TradePicker trades={trades} value={trade.id} onChange={setSelected} />
+      <PageHeader
+        eyebrow={rejected ? `${ref} · Rejected by verifier` : `Seller · Shipment · ${ref}`}
+        title={rejected ? "Shipment not approved. Funds remain in escrow." : trade.title}
+        tone={rejected ? "danger" : "fg"}
+      >
+        {!rejected && <StatusPill status={trade.status} label={statusLabel(trade, expired)} />}
+      </PageHeader>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-        <div className="space-y-6">
-          <section className="card p-5 sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="grid size-11 place-items-center rounded-xl bg-money/10 ring-1 ring-money/25">
-                  <LockKeyhole className="size-5 text-money" />
-                </div>
-                <div>
-                  <div className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                    <Amount value={escrow} className={escrow > 0 ? "text-money" : ""} unitClass="text-money/60" />
-                  </div>
-                  <div className="text-sm text-muted">
-                    {escrow > 0 ? "locked in escrow for you" : trade.status === "Paid" ? "released to you" : "no longer in escrow"} · {UNIT_LONG}
-                  </div>
-                </div>
-              </div>
-              <StatusPill status={trade.status} />
-            </div>
-            <div className="mt-5 grid gap-4 border-t border-line pt-5 sm:grid-cols-3">
-              <Party role="buyer" addr={trade.buyer} />
-              <div>
-                <div className="text-xs text-muted">Escrow funded</div>
-                <div className="mt-1">
-                  <TxLink sig={trade.fundTxSig} label="create tx" />
-                </div>
-                <div className="mt-1">
-                  <PlaceholderTag id="P15" />
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5 text-xs text-muted">
-                  <Timer className="size-3.5" /> Shipment deadline
-                </div>
-                <div className={`mt-1 text-sm font-medium tabular-nums ${expired && isOpen(trade) ? "text-danger" : ""}`}>
-                  {expired ? "Passed" : `in ${fmtDuration(left)}`}
-                </div>
-                <div className="mt-1">
-                  <PlaceholderTag id="P17" />
-                </div>
-              </div>
-            </div>
-            <div className="mt-5 rounded-lg bg-panel-2 px-4 py-3 text-sm ring-1 ring-line">
-              <span className="text-muted">Goods · </span>
-              {trade.goods}
-            </div>
-          </section>
-
-          <section className="card overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-4">
-              <div>
-                <div className="font-medium">Shipment documents</div>
-                <div className="text-xs text-muted">
-                  {docs.length} of {trade.requiredDocs.length} recorded
-                </div>
-              </div>
-              <PlaceholderTag id="P6" />
-            </div>
-            <ul className="divide-y divide-line">
-              {trade.requiredDocs.map((d) => (
-                <DocumentSlot
-                  key={`${trade.id}-${d}`}
-                  trade={trade}
-                  type={d}
-                  recorded={docs.find((x) => x.documentType === d)}
-                  staged={staged[d]}
-                  onStage={(v) => setStaged((x) => ({ ...x, [d]: v }))}
-                  locked={locked || busy}
-                />
-              ))}
-            </ul>
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-panel-2/40 px-5 py-4">
-              <div className="flex items-start gap-2 text-xs text-muted">
-                <ShieldCheck className="mt-px size-3.5 shrink-0 text-money" />
-                <span>Files never leave your browser. Only the SHA-256 fingerprint and a short filename are recorded.</span>
-              </div>
-              <button onClick={submit} disabled={busy || locked || stagedList.length === 0} className="btn btn-primary">
-                {busy ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-                {busy ? "Recording on-chain…" : `Submit shipment proof${stagedList.length ? ` (${stagedList.length})` : ""}`}
-              </button>
-            </div>
-          </section>
+      <div className="grid gap-px overflow-hidden rounded-[4px] border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+        <div className="bg-[oklch(0.96_0.015_160)] p-5">
+          <div className="text-[13px] font-medium text-money-ink">
+            {escrow > 0 ? "Locked in escrow" : trade.status === "Paid" ? "Released to you" : "No longer in escrow"}
+          </div>
+          <div className="mt-2 font-mono text-[30px] leading-none tabular-nums">{fmtMoney(escrow > 0 ? escrow : trade.amount)}</div>
+          <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[13px]">
+            <PlaceholderTag id="P15" />
+            <TxLink sig={trade.fundTxSig} label="escrow tx" />
+          </div>
         </div>
-
-        <aside className="h-fit space-y-4 lg:sticky lg:top-24">
-          <StatusBox
-            status={trade.status}
-            expired={expired}
-            missing={missing.map((d) => DOC_LABELS[d])}
-            tradeId={trade.id}
-          />
-        </aside>
+        <Cell label="Goods">{trade.goods}</Cell>
+        <Cell label="Buyer">
+          {PARTY_NAMES.buyer}
+          <a href={explorerAddress(trade.buyer)} target="_blank" rel="noreferrer" className="mt-1 block font-mono text-xs text-muted hover:text-fg">
+            {shortAddr(trade.buyer)}
+          </a>
+        </Cell>
+        <Cell label="Deadline">
+          {fmtDate(trade.deadline)}
+          <div className={`mt-1 flex items-center gap-2 text-xs ${expired && isOpen(trade) ? "text-danger" : "text-muted"}`}>
+            {!isOpen(trade) ? "settled" : expired ? "passed" : `${fmtDuration(left)} left`} <PlaceholderTag id="P17" />
+          </div>
+        </Cell>
       </div>
+
+      <StatusNote trade={trade} expired={expired} missing={missing.map((d) => DOC_LABELS[d])} />
+
+      <section className="mt-9">
+        <SectionHead
+          title="Required documents"
+          note={
+            <span className="inline-flex flex-wrap items-center gap-2">
+              Files stay off-chain. Their SHA-256 hashes are recorded on-chain. <PlaceholderTag id="P6" />
+            </span>
+          }
+        />
+        <ul>
+          {trade.requiredDocs.map((d) => (
+            <DocumentSlot
+              key={`${trade.id}-${d}`}
+              trade={trade}
+              type={d}
+              recorded={docs.find((x) => x.documentType === d)}
+              staged={staged[d]}
+              onStage={(v) => setStaged((x) => ({ ...x, [d]: v }))}
+              locked={locked || busy}
+            />
+          ))}
+        </ul>
+        <div className="mt-6 flex flex-wrap items-center justify-end gap-x-5 gap-y-3">
+          <span className="text-sm text-muted">
+            {ready} of {trade.requiredDocs.length} documents ready
+          </span>
+          <button onClick={submit} disabled={busy || locked || stagedList.length === 0} className="btn btn-money py-3">
+            {busy && <Loader2 className="size-4 animate-spin" />}
+            {busy ? "Recording on-chain…" : rejected ? "Resubmit shipment proof" : "Submit shipment proof"}
+          </button>
+        </div>
+      </section>
     </div>
   );
 }
 
-function StatusBox({ status, expired, missing, tradeId }: { status: string; expired: boolean; missing: string[]; tradeId: string }) {
-  let tone = "ring-line";
+function statusLabel(t: Trade, expired: boolean) {
+  if (t.status === "Funded") return expired ? "Deadline passed" : "Funded · awaiting shipment proof";
+  if (t.status === "DocumentsSubmitted") return "Documents submitted";
+  return undefined;
+}
+
+function Cell({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-panel p-5">
+      <div className="text-[13px] text-muted">{label}</div>
+      <div className="mt-2 text-[15px] leading-snug">{children}</div>
+    </div>
+  );
+}
+
+// One line under the summary saying what happens next for this trade.
+function StatusNote({ trade, expired, missing }: { trade: Trade; expired: boolean; missing: string[] }) {
+  const st = trade.status;
+  let tone = "border-line bg-panel";
   let title = "";
   let body: React.ReactNode = null;
-  if (status === "Paid") {
-    tone = "ring-money/30 bg-money/[0.06]";
+  if (st === "Paid") {
+    tone = "border-money/40 bg-money/[0.06]";
     title = "Paid";
     body = "The inspector approved the shipment and the escrow paid you in the same transaction.";
-  } else if (status === "Refunded") {
+  } else if (st === "Refunded") {
     title = "Refunded to buyer";
     body = "The deadline passed without an approved shipment, so the escrow went back to the buyer.";
   } else if (expired) {
-    tone = "ring-danger/30 bg-danger/[0.06]";
+    tone = "border-danger/40 bg-danger/[0.05]";
     title = "Deadline passed";
     body = "Documents can no longer be submitted. The buyer can now take a refund.";
-  } else if (status === "Rejected") {
-    tone = "ring-danger/30 bg-danger/[0.06]";
-    title = "Inspector rejected the shipment";
-    body = "Replace the documents that were wrong and submit again before the deadline.";
-  } else if (status === "DocumentsSubmitted") {
-    tone = "ring-inspector/30 bg-inspector/[0.06]";
+  } else if (st === "Rejected") {
+    tone = "border-danger/40 bg-danger/[0.05]";
+    title = "What happens next";
+    body = (
+      <>
+        Escrow still holds {fmtMoney(trade.amount)} {UNIT}. Nothing moves on rejection. Replace the document that was wrong
+        and resubmit before the deadline; new hashes are recorded alongside the rejected ones.
+      </>
+    );
+  } else if (st === "DocumentsSubmitted") {
+    tone = "border-info/35 bg-info/[0.05]";
     title = "Waiting for the inspector";
     body = "All required document hashes are recorded. Switch to Inspector to approve the shipment.";
   } else {
     title = "Next: submit your documents";
-    body = missing.length ? <>Still needed: {missing.join(", ")}.</> : "Everything is staged. Press Submit.";
+    body = missing.length ? <>Still needed: {missing.join(", ")}.</> : "Everything is staged. Press Submit shipment proof.";
   }
   return (
-    <div className={`card p-5 ring-1 ${tone}`}>
-      <div className="flex items-center gap-2 font-medium">
-        {(expired || status === "Rejected") && status !== "Paid" && status !== "Refunded" && <AlertTriangle className="size-4 text-danger" />}
-        {title}
+    <div className={`mt-6 flex flex-wrap items-start justify-between gap-x-6 gap-y-2 rounded-[4px] border px-5 py-4 ${tone}`}>
+      <div className="min-w-0 max-w-3xl">
+        <div className="text-[15px] font-semibold">{title}</div>
+        <p className="mt-1 text-sm leading-relaxed text-muted">{body}</p>
       </div>
-      <p className="mt-1.5 text-sm leading-relaxed text-muted">{body}</p>
-      <Link href={`/trade/${tradeId}`} className="mt-4 inline-flex items-center gap-1 text-sm text-muted hover:text-fg">
+      <Link href={`/trade/${trade.id}`} className="inline-flex shrink-0 items-center gap-1 pt-0.5 text-sm font-medium text-money-ink hover:underline">
         Trade record <ArrowRight className="size-3.5" />
       </Link>
     </div>

@@ -11,6 +11,9 @@ type Toast = { id: number; kind: "ok" | "err"; title: string; sig?: string };
 type Ctx = {
   role: Role;
   setRole: (r: Role) => void;
+  // Trade picked in the sidebar for the Seller and Inspector screens.
+  focus?: string;
+  setFocus: (id: string) => void;
   toast: (t: Omit<Toast, "id">) => void;
 };
 
@@ -27,6 +30,7 @@ const ROLE_KEY = "tradelock-role";
 export function Providers({ children }: { children: React.ReactNode }) {
   const [role, setRoleState] = useState<Role>("buyer");
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [focus, setFocus] = useState<string>();
 
   useEffect(() => {
     try {
@@ -49,7 +53,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AppCtx.Provider value={{ role, setRole, toast }}>
+    <AppCtx.Provider value={{ role, setRole, focus, setFocus, toast }}>
       {children}
       <div className="pointer-events-none fixed inset-x-4 bottom-4 z-[60] flex flex-col items-end gap-2 sm:left-auto">
         <AnimatePresence>
@@ -59,7 +63,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               initial={{ opacity: 0, y: 12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8 }}
-              className="card pointer-events-auto flex w-full max-w-sm items-start gap-3 p-3.5 shadow-2xl shadow-black/60"
+              className="card pointer-events-auto flex w-full max-w-sm items-start gap-3 p-3.5 shadow-lg shadow-fg/10"
             >
               {t.kind === "ok" ? (
                 <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-money" />

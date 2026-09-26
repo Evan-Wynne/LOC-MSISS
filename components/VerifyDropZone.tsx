@@ -51,8 +51,8 @@ export function VerifyDropZone({ trade, docs }: { trade: Trade; docs: TradeDocum
           if (f) check(f, f.name);
         }}
         onClick={() => input.current?.click()}
-        className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-7 text-center transition-colors ${
-          over ? "border-fg/50 bg-panel-2" : "border-line-2 hover:border-fg/30 hover:bg-panel-2/60"
+        className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[4px] border border-dashed bg-panel px-4 py-7 text-center transition-colors ${
+          over ? "border-money bg-money/[0.05]" : "border-line-2 hover:border-fg/40"
         }`}
       >
         {busy ? <Loader2 className="size-5 animate-spin text-muted" /> : <FileSearch className="size-5 text-muted" />}
@@ -75,7 +75,7 @@ export function VerifyDropZone({ trade, docs }: { trade: Trade; docs: TradeDocum
         <select
           value={sampleType}
           onChange={(e) => setSampleType(e.target.value as DocumentType)}
-          className="rounded-md border border-line bg-panel-2 px-2 py-1.5 text-xs text-fg outline-none"
+          className="rounded-[3px] border border-line-2 bg-panel px-2 py-1.5 text-xs text-fg outline-none"
           aria-label="Sample document type"
         >
           {trade.requiredDocs.map((d) => (
@@ -104,9 +104,9 @@ export function VerifyDropZone({ trade, docs }: { trade: Trade; docs: TradeDocum
           key={res.hash + res.name}
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`mt-4 rounded-xl px-4 py-3.5 ring-1 ${res.match ? "bg-money/[0.07] ring-money/30" : "bg-danger/[0.07] ring-danger/30"}`}
+          className={`mt-4 rounded-[4px] border px-4 py-3.5 ${res.match ? "border-money/40 bg-money/[0.06]" : "border-danger/40 bg-danger/[0.05]"}`}
         >
-          <div className={`flex items-center gap-2 text-sm font-medium ${res.match ? "text-money" : "text-danger"}`}>
+          <div className={`flex items-center gap-2 text-sm font-semibold ${res.match ? "text-money-ink" : "text-danger"}`}>
             {res.match ? <CircleCheck className="size-4" /> : <CircleX className="size-4" />}
             {res.match
               ? `Matches the on-chain hash of the ${DOC_LABELS[res.match.documentType].toLowerCase()}`

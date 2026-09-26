@@ -20,7 +20,7 @@ Then open http://localhost:3000.
 
 ## Demo flow (about a minute)
 1. **Buyer** → *New trade*: keep the cocoa defaults (36,000 tUSDC, three required documents). Pick **+2 min** as the deadline if you also want to show a refund. Press **Fund escrow**, and the trade record shows it Funded with a tx link.
-2. Switch to **Seller** (top right): the escrowed amount is shown locked. Press **Use sample** on each document (or choose real files; they're hashed in the browser, never uploaded) → **Submit shipment proof**.
+2. Switch to **Seller** ("Viewing as" in the sidebar; top bar on phones): the escrowed amount is shown locked. Press **Use sample** on each document (or **Upload file** with a real one; they're hashed in the browser, never uploaded) → **Submit shipment proof**.
 3. Switch to **Inspector**: in *Verify a document*, **Try the original** gives ✓ and **Try a tampered copy** gives ✗ (one character changed). Press **Approve shipment**, and the settlement card shows 36,000 tUSDC moving from escrow to the seller.
 4. **View trade record**: the timeline (Funded → Documents → Verified → Paid), the audit trail with a tx per step, and balances.
 5. Refund path: open a trade created with **+2 min** after its deadline → **Refund to buyer**.
