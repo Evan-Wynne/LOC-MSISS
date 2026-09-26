@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #09090b;
+  --color-panel: #111114;
+  --color-panel-2: #17171b;
+  --color-line: #26262c;
+  --color-line-2: #34343c;
+  --color-muted: #8b8b95;
+  --color-fg: #ededf0;
+
+  /* The one accent: money locked or released. */
+  --color-money: #14f195;
+  --color-warn: #f5b84b;
+  --color-danger: #ff6b6b;
+
+  /* One colour per role, used as dots and eyebrows only. */
+  --color-buyer: #5aa9ff;
+  --color-seller: #a98bff;
+  --color-inspector: #ff7eb6;
+
+  --font-sans: var(--font-geist-sans), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(20, 241, 149, 0.25);
+}
+
+.card {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+}
+
+.input {
+  width: 100%;
+  background: var(--color-panel-2);
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--color-fg);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.input:focus {
+  border-color: #55555f;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+}
+.input:disabled,
+.input[readonly] {
+  color: var(--color-muted);
+}
+input[type="datetime-local"].input {
+  color-scheme: dark;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.05s;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.btn-primary {
+  background: var(--color-fg);
+  color: var(--color-bg);
+}
+.btn-primary:hover {
+  background: #ffffff;
+}
+.btn-ghost {
+  border: 1px solid var(--color-line);
+  color: var(--color-fg);
+}
+.btn-ghost:hover {
+  background: var(--color-panel-2);
+  border-color: var(--color-line-2);
+}
+.btn-money {
+  background: var(--color-money);
+  color: #04130c;
+}
+.btn-money:hover {
+  background: #3ff5ab;
+}
+.btn-danger {
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  color: var(--color-danger);
+}
+.btn-danger:hover {
+  background: rgba(255, 107, 107, 0.08);
+}
+.btn-sm {
+  padding: 7px 11px;
+  font-size: 12.5px;
+  border-radius: 8px;
+  gap: 6px;
+}
+
+.eyebrow {
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
