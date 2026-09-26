@@ -1,0 +1,23 @@
+[package]
+name = "tradelock"
+version = "0.1.0"
+edition = "2021"
+description = "Tradelock: programmable letter-of-credit escrow (SPL token) for the devnet demo"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "tradelock"
+
+[features]
+default = []
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+
+# Pinned to what Solana Playground builds with. Compile-checked on the host
+# with `cargo test`; a scratch copy is checked against =0.30.1 too.
+[dependencies]
+anchor-lang = "=0.29.0"
+anchor-spl = "=0.29.0"

@@ -3,7 +3,7 @@
 | Phase | What | Status |
 |---|---|---|
 | 1 | UI demo on placeholder data (mock mode) | ✅ done |
-| 2 | "90-minute plan": Anchor SPL-token escrow on devnet, with the app wired to it (chain mode) | next |
+| 2 | "90-minute plan": Anchor SPL-token escrow on devnet, with the app wired to it (chain mode) | ✅ built; deploy with docs/SETUP.md |
 | 3 | Real wallets, multisig or oracle verifier, Circle USDC, Token-2022 compliance | next (say "next" in the deck) |
 
 Section numbers match the `PLACEHOLDER[...]` comments in the code. Everything here is free: Solana **devnet** (free test SOL), Solana Playground, faucet.solana.com, Vercel Hobby and GitHub. No paid RPCs, APIs or cards.
