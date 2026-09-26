@@ -40,7 +40,7 @@ for (const role of ["BUYER", "SELLER", "INSPECTOR"]) {
   kp[role] = Keypair.fromSecretKey(bs58.decode(env[`DEMO_${role}_KEY`]));
   env[`NEXT_PUBLIC_DEMO_${role}`] = kp[role].publicKey.toBase58();
 }
-env.NEXT_PUBLIC_SHOW_PLACEHOLDERS ||= "true";
+env.NEXT_PUBLIC_SHOW_PLACEHOLDERS ||= "false";
 save();
 console.log(green("✓"), "Demo keys in .env.local (buyer, seller, inspector)");
 

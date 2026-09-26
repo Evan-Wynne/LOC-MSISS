@@ -7,7 +7,7 @@ import { ArrowRight, ExternalLink, LockKeyhole, X } from "lucide-react";
 import type { Settlement } from "@/lib/types";
 import { explorerTx, fmtAmount, fmtMoney, shortAddr } from "@/lib/explorer";
 import { PARTY_NAMES } from "@/lib/placeholder-data";
-import { UNIT } from "@/lib/config";
+import { CHAIN_MODE, UNIT } from "@/lib/config";
 import { PlaceholderTag } from "./PlaceholderTag";
 import { RoleDot } from "./ui";
 
@@ -49,7 +49,7 @@ export function SettlementCard({ settlement, onClose }: { settlement: Settlement
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 font-mono text-xs text-muted hover:text-fg"
                 >
-                  Solana Explorer · {shortAddr(settlement.txSig, 5)} <ExternalLink className="size-3" />
+                  {CHAIN_MODE ? "Solana Explorer · " : "tx "}{shortAddr(settlement.txSig, 5)} {CHAIN_MODE && <ExternalLink className="size-3" />}
                 </a>
                 <PlaceholderTag id="P15" />
               </span>

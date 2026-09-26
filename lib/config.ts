@@ -3,6 +3,10 @@
 export const CHAIN_MODE = !!process.env.NEXT_PUBLIC_PROGRAM_ID;
 export const PROGRAM_ID = process.env.NEXT_PUBLIC_PROGRAM_ID ?? "";
 
+// MOCK chips and the "placeholder data" banner are hidden unless
+// NEXT_PUBLIC_SHOW_PLACEHOLDERS=true (handy while developing).
+export const SHOW_MOCK_LABELS = process.env.NEXT_PUBLIC_SHOW_PLACEHOLDERS === "true";
+
 // PLACEHOLDER[P18]: mock mode shows tUSDC amounts that are just numbers in the browser. Chain mode uses a real SPL token, but it's our own devnet test mint, not Circle USDC → REAL: Circle's devnet USDC, then mainnet USDC (see docs/ROADMAP.md §7)
 export const UNIT = "tUSDC";
 export const UNIT_LONG = "tUSDC (test USDC on devnet)";

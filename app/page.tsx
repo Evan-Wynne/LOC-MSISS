@@ -98,7 +98,7 @@ export default function Home() {
             rel="noreferrer"
             className="inline-flex items-center gap-2 rounded-[3px] border border-line bg-panel px-3 py-1 font-mono text-[11px] uppercase tracking-[0.06em] text-muted hover:text-fg"
           >
-            <span className="size-1.5 rounded-full bg-money" /> Running on Solana devnet · test tokens only
+            <span className="size-1.5 rounded-full bg-money" /> {CHAIN_MODE ? "Running on Solana devnet · test tokens only" : "Solana escrow · test tokens only"}
           </a>
           <PlaceholderTag id="P16" />
         </div>

@@ -8,7 +8,7 @@ import { useLoc } from "@/lib/use-loc";
 import { DEMO_WALLETS, PARTY_NAMES } from "@/lib/placeholder-data";
 import { DOC_LABELS, DOC_TYPES, type DocumentType } from "@/lib/types";
 import { fmtAmount, fmtDate, fmtMoney, shortAddr } from "@/lib/explorer";
-import { CHAIN_MODE, UNIT, UNIT_LONG } from "@/lib/config";
+import { CHAIN_MODE, SHOW_MOCK_LABELS, UNIT, UNIT_LONG } from "@/lib/config";
 import { FormRow, PageHeader, Row, fmtDuration } from "@/components/ui";
 import { PlaceholderTag } from "@/components/PlaceholderTag";
 import { useApp } from "@/components/Providers";
@@ -183,7 +183,7 @@ export default function NewTrade() {
               {busy ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-4" />}
               {busy ? "Locking funds in escrow…" : "Fund escrow"}
             </button>
-            {!CHAIN_MODE && (
+            {!CHAIN_MODE && SHOW_MOCK_LABELS && (
               <div className="mt-3 flex items-center gap-2 text-xs text-muted">
                 <PlaceholderTag id="P4" /> Funding is simulated in mock mode.
               </div>

@@ -5,7 +5,7 @@ import { useLoc } from "@/lib/use-loc";
 import { isOpen } from "@/lib/loc";
 import { DEMO_WALLETS, PARTY_NAMES } from "@/lib/placeholder-data";
 import { fmtMoney, shortAddr, tradeRef } from "@/lib/explorer";
-import { UNIT } from "@/lib/config";
+import { SHOW_MOCK_LABELS, UNIT } from "@/lib/config";
 import type { Trade } from "@/lib/types";
 import { Empty, PageHeader, StatusPill } from "@/components/ui";
 import { PlaceholderTag } from "@/components/PlaceholderTag";
@@ -24,7 +24,7 @@ export default function BuyerTrades() {
 
   const locked = s.trades.filter(isOpen).reduce((t, x) => t + (s.vaults[x.id] ?? 0), 0);
   const released = s.trades.filter((t) => t.status === "Paid").reduce((t, x) => t + x.amount, 0);
-  const hasSeed = s.trades.some((t) => t.id.startsWith("trd_seed"));
+  const hasSeed = SHOW_MOCK_LABELS && s.trades.some((t) => t.id.startsWith("trd_seed"));
 
   return (
     <div>

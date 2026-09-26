@@ -1,9 +1,12 @@
+import { CHAIN_MODE } from "./config";
+
 // PLACEHOLDER[P15]: in mock mode these links point at fake signatures/addresses and 404 → REAL: chain mode passes real devnet signatures and accounts, so the links resolve (see docs/ROADMAP.md §4)
+// Mock-mode signatures and addresses don't exist on-chain, so they aren't linked.
 export const explorerTx = (sig: string) =>
-  `https://explorer.solana.com/tx/${sig}?cluster=devnet`;
+  CHAIN_MODE ? `https://explorer.solana.com/tx/${sig}?cluster=devnet` : undefined;
 
 export const explorerAddress = (addr: string) =>
-  `https://explorer.solana.com/address/${addr}?cluster=devnet`;
+  CHAIN_MODE ? `https://explorer.solana.com/address/${addr}?cluster=devnet` : undefined;
 
 export const shortAddr = (addr: string, n = 4) =>
   addr.length <= n * 2 + 1 ? addr : `${addr.slice(0, n)}…${addr.slice(-n)}`;

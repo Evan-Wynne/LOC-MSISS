@@ -9,7 +9,7 @@ import { docsOf, eventsOf, isOpen, refundAfterDeadline } from "@/lib/loc";
 import type { Settlement, Trade } from "@/lib/types";
 import { DOC_LABELS } from "@/lib/types";
 import { explorerAddress, explorerTx, fmtDate, fmtMoney, shortAddr, tradeRef } from "@/lib/explorer";
-import { UNIT } from "@/lib/config";
+import { CHAIN_MODE, UNIT } from "@/lib/config";
 import { PARTY_NAMES } from "@/lib/placeholder-data";
 import { Empty, Hash, PageHeader, Row, SectionHead, StatusPill, fmtDuration, useCountdown } from "@/components/ui";
 import { AuditTrail, Timeline } from "@/components/Timeline";
@@ -93,7 +93,7 @@ export default function TradeRecord() {
           title="Trade record"
           note={
             <span className="inline-flex items-center gap-2">
-              <PlaceholderTag id="P11" /> Every step is a Solana transaction anyone can inspect.
+              <PlaceholderTag id="P11" /> {CHAIN_MODE ? "Every step is a Solana transaction anyone can inspect." : "Every step is logged with its transaction reference."}
             </span>
           }
         />
@@ -167,7 +167,7 @@ export default function TradeRecord() {
               ))}
               <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                 <a href={explorerAddress(trade.id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-money-ink hover:underline">
-                  Trade account {shortAddr(trade.id, 6)} <ExternalLink className="size-3" />
+                  Trade account {shortAddr(trade.id, 6)} {CHAIN_MODE && <ExternalLink className="size-3" />}
                 </a>
                 <PlaceholderTag id="P15" />
               </div>
@@ -218,7 +218,11 @@ function SettledHero({ trade, ref_ }: { trade: Trade; ref_: string }) {
         {trade.settleTxSig && (
           <a href={explorerTx(trade.settleTxSig)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 font-mono text-white">
             {paid ? "settlement" : "refund"} tx {shortAddr(trade.settleTxSig, 4)}
-            <span className="font-sans underline underline-offset-2">Open in Solana Explorer</span> <ExternalLink className="size-3" />
+            {CHAIN_MODE && (
+              <>
+                <span className="font-sans underline underline-offset-2">Open in Solana Explorer</span> <ExternalLink className="size-3" />
+              </>
+            )}
           </a>
         )}
       </div>

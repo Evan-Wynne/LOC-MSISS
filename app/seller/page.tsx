@@ -7,7 +7,7 @@ import { useLoc } from "@/lib/use-loc";
 import { docsOf, isOpen, submitDocument } from "@/lib/loc";
 import type { DocumentType, Trade } from "@/lib/types";
 import { DOC_LABELS } from "@/lib/types";
-import { UNIT } from "@/lib/config";
+import { CHAIN_MODE, UNIT } from "@/lib/config";
 import { PARTY_NAMES } from "@/lib/placeholder-data";
 import { explorerAddress, fmtDate, fmtMoney, shortAddr, tradeRef } from "@/lib/explorer";
 import { sellerOrder } from "@/lib/order";
@@ -62,7 +62,7 @@ export default function SellerShipments() {
       }
       toast({
         kind: "ok",
-        title: `${stagedList.length} document hash${stagedList.length === 1 ? "" : "es"} recorded on-chain`,
+        title: `${stagedList.length} document hash${stagedList.length === 1 ? "" : "es"} recorded${CHAIN_MODE ? " on-chain" : ""}`,
         sig: lastSig,
       });
     } catch (err) {

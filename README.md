@@ -32,7 +32,7 @@ Open **Demo kit** in the sidebar (`/demo`) for the sample PDFs (originals plus t
 ## Deploy to Vercel (free Hobby plan)
 1. vercel.com → **Add New… → Project** → import `Evan-Wynne/LOC-MSISS`.
 2. Keep the defaults (framework: Next.js) → **Deploy**. Mock mode needs no environment variables.
-3. Optional: set `NEXT_PUBLIC_SHOW_PLACEHOLDERS=false` to hide the placeholder tags for the pitch, then redeploy.
+3. Optional: set `NEXT_PUBLIC_SHOW_PLACEHOLDERS=true` to show the MOCK chips and placeholder banner (hidden by default), then redeploy.
 
 ## Code map
 - `lib/loc.ts`: the only data layer; every page calls these functions (mock mode now, `/api/chain` in chain mode).

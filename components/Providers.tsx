@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, ExternalLink, XCircle } from "lucide-react";
 import type { Role } from "@/lib/types";
 import { explorerTx, shortAddr } from "@/lib/explorer";
+import { CHAIN_MODE } from "@/lib/config";
 
 type Toast = { id: number; kind: "ok" | "err"; title: string; sig?: string };
 
@@ -79,7 +80,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     rel="noreferrer"
                     className="mt-0.5 inline-flex items-center gap-1 font-mono text-xs text-muted hover:text-fg"
                   >
-                    tx {shortAddr(t.sig, 6)} <ExternalLink className="size-3" />
+                    tx {shortAddr(t.sig, 6)} {CHAIN_MODE && <ExternalLink className="size-3" />}
                   </a>
                 )}
               </div>

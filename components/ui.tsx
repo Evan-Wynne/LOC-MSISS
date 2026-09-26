@@ -5,7 +5,7 @@ import { Check, Copy, ExternalLink } from "lucide-react";
 import type { Role, TradeStatus } from "@/lib/types";
 import { explorerAddress, explorerTx, fmtMoney, shortAddr } from "@/lib/explorer";
 import { PARTY_NAMES, ROLE_LABELS } from "@/lib/placeholder-data";
-import { UNIT } from "@/lib/config";
+import { CHAIN_MODE, UNIT } from "@/lib/config";
 
 // Literal class names so Tailwind picks them up.
 export const ROLE_TEXT: Record<Role, string> = { buyer: "text-buyer", seller: "text-seller", inspector: "text-inspector" };
@@ -84,7 +84,7 @@ export function TxLink({ sig, label = "tx" }: { sig: string; label?: string }) {
       rel="noreferrer"
       className="inline-flex items-center gap-1 font-mono text-xs text-money-ink hover:underline"
     >
-      {label ? `${label} ` : ""}{shortAddr(sig, 4)} <ExternalLink className="size-3" />
+      {label ? `${label} ` : ""}{shortAddr(sig, 4)} {CHAIN_MODE && <ExternalLink className="size-3" />}
     </a>
   );
 }

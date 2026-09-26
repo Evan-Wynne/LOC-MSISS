@@ -1,8 +1,8 @@
-import { CHAIN_MODE } from "@/lib/config";
+import { CHAIN_MODE, SHOW_MOCK_LABELS } from "@/lib/config";
 
 // Small yellow MOCK chip marking values that are fake for now (id in the tooltip).
-// Hide all of them for the pitch with NEXT_PUBLIC_SHOW_PLACEHOLDERS=false.
-const SHOW = process.env.NEXT_PUBLIC_SHOW_PLACEHOLDERS !== "false";
+// Shown only with NEXT_PUBLIC_SHOW_PLACEHOLDERS=true.
+const SHOW = SHOW_MOCK_LABELS;
 
 // Placeholders that become real once chain mode is on (see docs/PLACEHOLDERS.md).
 const REAL_IN_CHAIN_MODE = new Set([
