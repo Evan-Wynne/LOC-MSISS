@@ -5,7 +5,7 @@ import { Fingerprint, Loader2 } from "lucide-react";
 import type { DocumentType, Trade, TradeDocument } from "@/lib/types";
 import { DOC_LABELS } from "@/lib/types";
 import { sha256Hex } from "@/lib/hash";
-import { sampleBlob, sampleFilename } from "@/lib/samples";
+import { fetchSample, sampleName } from "@/lib/samples";
 import { Hash, TxLink } from "./ui";
 import { PlaceholderTag } from "./PlaceholderTag";
 
@@ -99,7 +99,7 @@ export function DocumentSlot({
           <>
             <button
               type="button"
-              onClick={() => stage(sampleBlob(trade, type), sampleFilename(trade, type), true)}
+              onClick={async () => stage(await fetchSample(type), sampleName(type), true)}
               className="text-[13px] text-muted underline-offset-2 hover:text-fg hover:underline"
             >
               Use sample

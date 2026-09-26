@@ -6,7 +6,7 @@ import { CircleCheck, CircleX, FileSearch, Loader2 } from "lucide-react";
 import type { DocumentType, Trade, TradeDocument } from "@/lib/types";
 import { DOC_LABELS } from "@/lib/types";
 import { sha256Hex } from "@/lib/hash";
-import { sampleText, tamper } from "@/lib/samples";
+import { SAMPLES, fetchSample, sampleName } from "@/lib/samples";
 
 type Result = {
   name: string;
@@ -34,7 +34,6 @@ export function VerifyDropZone({ trade, docs }: { trade: Trade; docs: TradeDocum
     }
   }
 
-  const original = () => sampleText(trade, sampleType);
 
   return (
     <div>
@@ -84,15 +83,12 @@ export function VerifyDropZone({ trade, docs }: { trade: Trade; docs: TradeDocum
             </option>
           ))}
         </select>
-        <button type="button" onClick={() => check(original(), `Sample ${DOC_LABELS[sampleType].toLowerCase()}`)} className="btn btn-ghost btn-sm">
+        <button type="button" onClick={async () => check(await fetchSample(sampleType), sampleName(sampleType))} className="btn btn-ghost btn-sm">
           Try the original
         </button>
         <button
           type="button"
-          onClick={() => {
-            const t = tamper(original());
-            check(t.text, `Tampered ${DOC_LABELS[sampleType].toLowerCase()}`, t.note);
-          }}
+          onClick={async () => check(await fetchSample(sampleType, true), sampleName(sampleType, true), SAMPLES[sampleType].tamperNote)}
           className="btn btn-ghost btn-sm"
         >
           Try a tampered copy

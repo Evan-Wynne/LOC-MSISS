@@ -45,6 +45,6 @@ In the UI, fake values carry a yellow **MOCK** chip (hover it to see its P# id).
 | P17 | `components/ui.tsx` | Deadline countdown runs on the browser clock | ✅ on-chain deadline (refund still needs a click) | §7 |
 | P18 | `lib/config.ts` | tUSDC amounts are just numbers | ⚠️ real SPL token, but our own devnet test mint, not Circle USDC | §7 |
 | P19 | `app/inspector/page.tsx` | The inspector is one designated demo key; approval is an attestation, not proof of the physical shipment | ⚠️ unchanged: the trust assumption is the MVP's design | §7 |
-| P20 | `lib/samples.ts` | "Use sample" generates plain-text demo documents | ⚠️ unchanged (demo convenience; real files work too) | §7 |
+| P20 | `lib/samples.ts`, `public/samples/` | Sample PDFs for one demo cocoa trade (+ tampered copies), made by `npm run samples` | ⚠️ unchanged (demo convenience; real files work too) | §7 |
 
 **Still fake or partial in chain mode: P12, P18, P19, P20** (plus P5, which is intentional). Those are the "next" items in [`ROADMAP.md`](ROADMAP.md) §7.

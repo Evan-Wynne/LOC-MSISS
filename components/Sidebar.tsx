@@ -111,6 +111,12 @@ export function Sidebar() {
             ))}
             {links.length === 0 && <div className="px-3 py-2 text-sm text-muted">No trades yet</div>}
           </nav>
+          <div className="eyebrow mt-8 text-muted">Presenting</div>
+          <nav className="mt-2.5">
+            <Link href="/demo" className={linkCls({ key: "demo", label: "", href: "/demo", active: path === "/demo" })}>
+              Demo kit &amp; sample files
+            </Link>
+          </nav>
         </div>
       </aside>
 
@@ -128,6 +134,9 @@ export function Sidebar() {
               {l.label}
             </Link>
           ))}
+          <Link href="/demo" className={`${linkCls({ key: "demo", label: "", href: "/demo", active: path === "/demo" })} shrink-0 py-1.5`}>
+            Demo kit
+          </Link>
         </nav>
       </header>
     </>

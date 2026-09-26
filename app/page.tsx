@@ -114,6 +114,9 @@ export default function Home() {
           <Link href="/buyer/new" className="btn btn-primary">
             Start the demo <ArrowRight className="size-4" />
           </Link>
+          <Link href="/demo" className="btn btn-ghost">
+            Demo kit &amp; sample files
+          </Link>
           <Link href={CHAIN_MODE ? "/buyer" : "/trade/trd_seed_coffee"} className="btn btn-ghost">
             {CHAIN_MODE ? "See all trades" : "See a settled trade"}
           </Link>

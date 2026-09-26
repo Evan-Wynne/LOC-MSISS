@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "samples": "node scripts/make-samples.mjs"
   },
   "dependencies": {
     "@solana/web3.js": "^1.99.0",

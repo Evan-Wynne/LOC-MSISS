@@ -19,6 +19,8 @@ git clone https://github.com/Evan-Wynne/LOC-MSISS && cd LOC-MSISS && npm install
 Then open http://localhost:3000.
 
 ## Demo flow (about a minute)
+Open **Demo kit** in the sidebar (`/demo`) for the sample PDFs (originals plus tampered copies) and a click-through script.
+
 1. **Buyer** → *New trade*: keep the cocoa defaults (36,000 tUSDC, three required documents). Pick **+2 min** as the deadline if you also want to show a refund. Press **Fund escrow**, and the trade record shows it Funded with a tx link.
 2. Switch to **Seller** ("Viewing as" in the sidebar; top bar on phones): the escrowed amount is shown locked. Press **Use sample** on each document (or **Upload file** with a real one; they're hashed in the browser, never uploaded) → **Submit shipment proof**.
 3. Switch to **Inspector**: in *Verify a document*, **Try the original** gives ✓ and **Try a tampered copy** gives ✗ (one character changed). Press **Approve shipment**, and the settlement card shows 36,000 tUSDC moving from escrow to the seller.
